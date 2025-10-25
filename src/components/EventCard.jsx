@@ -1,11 +1,13 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Card } from 'primereact/card'
 import { Button } from 'primereact/button'
 import './EventCard.css'
 
-const EventCard = ({ event, onRegister, isDragging, isActive }) => {
+const EventCard = ({ event, onRegister, isDragging, isActive, position, total }) => {
+  const [isDragMode, setIsDragMode] = useState(false)
+  
   const {
     attributes,
     listeners,
@@ -26,21 +28,41 @@ const EventCard = ({ event, onRegister, isDragging, isActive }) => {
     return new Date(dateString).toLocaleDateString(undefined, options)
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      if (!isDragMode) {
+        setIsDragMode(true)
+        // Announce to screen readers
+        const announcement = `Drag mode activated for ${event.name}. Use arrow keys to move, Space or Enter to drop, Escape to cancel.`
+        const liveRegion = document.getElementById('drag-announcements')
+        if (liveRegion) {
+          liveRegion.textContent = announcement
+        }
+      }
+      listeners?.onKeyDown?.(e)
+    } else if (e.key === 'Escape' && isDragMode) {
+      e.preventDefault()
+      setIsDragMode(false)
+      const announcement = `Drag mode cancelled for ${event.name}`
+      const liveRegion = document.getElementById('drag-announcements')
+      if (liveRegion) {
+        liveRegion.textContent = announcement
+      }
+    }
+  }
+
   const cardHeader = (
     <div className="event-card-header">
       <div 
-        className="drag-handle"
+        className={`drag-handle ${isDragMode ? 'drag-mode-active' : ''}`}
         {...attributes}
         {...listeners}
         role="button"
-        aria-label={`Drag to reorder ${event.name}`}
+        aria-label={`Drag to reorder ${event.name}. Position ${position} of ${total}. Currently ${isDragMode ? 'in drag mode' : 'ready to drag'}`}
+        aria-pressed={isDragMode}
         tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            listeners?.onKeyDown?.(e)
-          }
-        }}
+        onKeyDown={handleKeyDown}
       >
         <i className="pi pi-bars" aria-hidden="true"></i>
       </div>
@@ -64,8 +86,20 @@ const EventCard = ({ event, onRegister, isDragging, isActive }) => {
     <div
       ref={setNodeRef}
       style={style}
-      className={`event-card-wrapper ${isDragging ? 'dragging-overlay' : ''} ${isActive ? 'active' : ''}`}
+      className={`event-card-wrapper ${isDragging ? 'dragging-overlay' : ''} ${isActive ? 'active' : ''} ${isDragMode ? 'drag-mode' : ''}`}
       role="listitem"
+      aria-label={`Event: ${event.name}, Date: ${formatDate(event.date)}, Location: ${event.location}, Position ${position} of ${total}`}
+      aria-describedby={`event-${event.id}-description`}
+      aria-posinset={position}
+      aria-setsize={total}
+      tabIndex={0}
+      onFocus={() => {
+        const announcement = `Focused on ${event.name} event. Press Tab to move to drag handle, or Shift+Tab to go back.`
+        const liveRegion = document.getElementById('focus-announcements')
+        if (liveRegion) {
+          liveRegion.textContent = announcement
+        }
+      }}
     >
       <Card
         header={cardHeader}
@@ -85,7 +119,7 @@ const EventCard = ({ event, onRegister, isDragging, isActive }) => {
               <strong>Location:</strong> {event.location}
             </span>
           </div>
-          <div className="event-description">
+          <div className="event-description" id={`event-${event.id}-description`}>
             <p>{event.description}</p>
           </div>
         </div>

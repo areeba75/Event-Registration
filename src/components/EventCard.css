@@ -13,6 +13,18 @@
   opacity: 0.5;
 }
 
+.event-card-wrapper.drag-mode {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+.event-card-wrapper:focus {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
 .event-card {
   height: 100%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -55,6 +67,22 @@
 
 .drag-handle:active {
   cursor: grabbing;
+}
+
+.drag-handle.drag-mode-active {
+  background-color: rgba(255, 255, 255, 0.3);
+  outline: 3px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+  animation: drag-mode-pulse 1s infinite;
+}
+
+@keyframes drag-mode-pulse {
+  0%, 100% { 
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+  50% { 
+    background-color: rgba(255, 255, 255, 0.5);
+  }
 }
 
 .drag-handle i {

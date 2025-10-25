@@ -94,12 +94,26 @@ const EventList = () => {
 
   return (
     <div className="event-list-page">
+      {/* Screen reader announcements */}
+      <div 
+        id="drag-announcements" 
+        aria-live="assertive" 
+        aria-atomic="true"
+        className="sr-only"
+      ></div>
+      <div 
+        id="focus-announcements" 
+        aria-live="polite" 
+        aria-atomic="true"
+        className="sr-only"
+      ></div>
+      
       <div className="page-header">
         <h1>Upcoming Events</h1>
         <p className="page-description">
           Browse and register for exciting events. You can drag and drop to reorder the list!
         </p>
-        <div className="drag-instructions" role="status" aria-live="polite">
+        <div id="drag-instructions" className="drag-instructions" role="status" aria-live="polite">
           <i className="pi pi-info-circle"></i>
           <span>Tip: Click and drag events to reorder them, or use Tab + Space/Enter for keyboard navigation</span>
         </div>
@@ -123,13 +137,16 @@ const EventList = () => {
               className="events-grid"
               role="list"
               aria-label="Event list with drag and drop reordering"
+              aria-describedby="drag-instructions"
             >
-              {events.map((event) => (
+              {events.map((event, index) => (
                 <EventCard
                   key={event.id}
                   event={event}
                   onRegister={handleRegister}
                   isActive={event.id === activeId}
+                  position={index + 1}
+                  total={events.length}
                 />
               ))}
             </div>
